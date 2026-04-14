@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Tooling Frontier — Research Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --orange: #db6d28;
+    --purple: #bc8cff;
+    --pink: #f778ba;
+    --cyan: #39d2c0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    padding: 0 1rem;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 0 4rem;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 3rem 0 2rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2.5rem;
+  }
+  .header h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+  .header .subtitle {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 3rem;
+  }
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-num {
+    background: var(--accent);
+    color: var(--bg);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .card h3 {
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+  }
+  .card p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  /* Executive summary */
+  .exec-summary {
+    background: linear-gradient(135deg, rgba(88,166,255,0.08), rgba(188,140,255,0.08));
+    border: 1px solid rgba(88,166,255,0.25);
+    border-radius: 10px;
+    padding: 2rem;
+    font-size: 1.15rem;
+    line-height: 1.7;
+    text-align: center;
+    color: var(--text);
+  }
+  .exec-summary .key-line {
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  /* Opportunity cards grid */
+  .opp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1rem;
+  }
+  .opp-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s;
+  }
+  .opp-card:hover {
+    border-color: var(--accent);
+  }
+  .opp-card .opp-num {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.35rem;
+  }
+  .opp-card h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+  .opp-card p {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    flex: 1;
+  }
+
+  /* Stat callouts */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    text-align: center;
+  }
+  .stat-card .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .stat-card .stat-label {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    margin-top: 0.25rem;
+  }
+
+  /* Tables */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin-bottom: 1rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+  thead {
+    background: var(--surface2);
+  }
+  th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(88,166,255,0.04); }
+
+  /* Pills */
+  .pill {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .pill-hot { background: rgba(63,185,80,0.15); color: var(--green); }
+  .pill-steady { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .pill-stalling { background: rgba(248,81,73,0.15); color: var(--red); }
+  .pill-mature { background: rgba(57,210,192,0.15); color: var(--cyan); }
+  .pill-early { background: rgba(188,140,255,0.15); color: var(--purple); }
+  .pill-early-mature { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .pill-defacto { background: rgba(63,185,80,0.15); color: var(--green); }
+  .pill-emerging { background: rgba(188,140,255,0.15); color: var(--purple); }
+  .pill-vendor { background: rgba(248,81,73,0.15); color: var(--red); }
+
+  /* Chart container */
+  .chart-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .chart-container canvas {
+    max-height: 420px;
+  }
+
+  /* Sources */
+  .sources {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  .sources ul {
+    list-style: none;
+    columns: 2;
+    column-gap: 2rem;
+  }
+  .sources li {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 0.25rem 0;
+    break-inside: avoid;
+  }
+  .sources a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .sources a:hover { text-decoration: underline; }
+
+  /* New projects list */
+  .project-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+  }
+  .project-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  .project-item .proj-name {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+  .project-item .proj-stars {
+    color: var(--yellow);
+    font-size: 0.82rem;
+    margin-top: 0.15rem;
+  }
+  .project-item .proj-desc {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    margin-top: 0.3rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .header h1 { font-size: 1.6rem; }
+    .opp-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .sources ul { columns: 1; }
+    .project-list { grid-template-columns: 1fr 1fr; }
+    .exec-summary { padding: 1.25rem; font-size: 1rem; }
+  }
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .project-list { grid-template-columns: 1fr; }
+    body { padding: 0 0.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>AI Tooling Frontier — Research Report</h1>
+    <div class="subtitle">April 13, 2026</div>
+  </div>
+
+  <!-- 1. Executive Summary -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">1</span> Executive Summary</div>
+    <div class="exec-summary">
+      <p class="key-line">The framework layer is commoditizing.</p>
+      <p>The hard problems have shifted to infrastructure: <strong>memory</strong>, <strong>durability</strong>, <strong>observability</strong>, and <strong>inter-agent communication standards</strong>.</p>
+    </div>
+  </div>
+
+  <!-- 6. Key Stats -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">2</span> Key Stats</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">97M+</div>
+        <div class="stat-label">MCP monthly installs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">41%</div>
+        <div class="stat-label">AI-generated code on GitHub</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">$4B</div>
+        <div class="stat-label">AI code review market</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">2.7x</div>
+        <div class="stat-label">More vulns in AI vs human code</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">52M</div>
+        <div class="stat-label">Ollama monthly downloads</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">236x</div>
+        <div class="stat-label">Potential token increase from MCP</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Top Opportunities -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">3</span> Top Opportunities</div>
+    <div class="opp-grid">
+      <div class="opp-card">
+        <div class="opp-num">Opportunity 1</div>
+        <h3>MCP Observability Sidecar</h3>
+        <p>No standard structured tracing for MCP tool calls. OpenTelemetry export needed for production debugging and cost tracking.</p>
+      </div>
+      <div class="opp-card">
+        <div class="opp-num">Opportunity 2</div>
+        <h3>Context-Aware Tool Routing</h3>
+        <p>MCP bloat is the #1 pain point (up to 236x token increase). Predictive pre-loading and just-in-time tool selection needed.</p>
+      </div>
+      <div class="opp-card">
+        <div class="opp-num">Opportunity 3</div>
+        <h3>Agent Session Persistence</h3>
+        <p>Knowledge bridging across sessions is still manual. Agents lose all context between runs — memory engineering is unsolved.</p>
+      </div>
+      <div class="opp-card">
+        <div class="opp-num">Opportunity 4</div>
+        <h3>Eval-as-a-Service for RAG</h3>
+        <p>Only 18% of teams use eval tooling. Automated pipeline quality assessment for retrieval-augmented generation.</p>
+      </div>
+      <div class="opp-card">
+        <div class="opp-num">Opportunity 5</div>
+        <h3>MCP Auth Gateway</h3>
+        <p>41% of servers lack authentication. Reusable OAuth/SSO proxy to secure the MCP ecosystem.</p>
+      </div>
+      <div class="opp-card">
+        <div class="opp-num">Opportunity 6</div>
+        <h3>Prompt CI/CD</h3>
+        <p>"Terraform for prompts" doesn't exist. Git-based prompt management not yet integrated into developer workflows.</p>
+      </div>
+      <div class="opp-card">
+        <div class="opp-num">Opportunity 7</div>
+        <h3>AI Security for Small Teams</h3>
+        <p>2.7x more vulnerabilities in AI-generated code. Lightweight scanning tools for teams without dedicated security.</p>
+      </div>
+      <div class="opp-card">
+        <div class="opp-num">Opportunity 8</div>
+        <h3>Personal / Local-First MCP Servers</h3>
+        <p>Ecosystem skews SaaS. Local automation, personal tooling, and offline-first MCP servers are underrepresented.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Agent Frameworks Landscape -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">4</span> Agent Frameworks Landscape</div>
+    <div class="chart-container">
+      <canvas id="frameworkChart"></canvas>
+    </div>
+
+    <h3 style="margin-bottom: 0.75rem; font-size: 1.1rem;">Hard Problems in Agent Engineering</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Problem</th><th>Details</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><strong>Memory engineering</strong></td><td>Naive vector append leads to retrieval noise and context dilution</td></tr>
+          <tr><td>2</td><td><strong>Durable execution</strong></td><td>80% through a task and it fails — restarting from scratch is unacceptable</td></tr>
+          <tr><td>3</td><td><strong>Multi-agent state sync</strong></td><td>Sibling agents repeat work; shared memory risks poisoning</td></tr>
+          <tr><td>4</td><td><strong>Non-deterministic observability</strong></td><td>Same input, different paths — need to understand every decision</td></tr>
+          <tr><td>5</td><td><strong>MCP production gaps</strong></td><td>Stateful sessions vs load balancers; no horizontal scaling story</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4. MCP Ecosystem -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">5</span> MCP Ecosystem</div>
+
+    <div class="stats-grid" style="margin-bottom: 1.5rem;">
+      <div class="stat-card">
+        <div class="stat-value">97M+</div>
+        <div class="stat-label">Monthly installs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">11,840+</div>
+        <div class="stat-label">MCP servers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">LF</div>
+        <div class="stat-label">Governed by Linux Foundation</div>
+      </div>
+    </div>
+
+    <h3 style="margin-bottom: 0.75rem; font-size: 1.1rem;">Pain Points</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Issue</th><th>Impact</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Context bloat</strong></td><td>Up to 236x token increase; 55K+ tokens consumed before the first user message</td></tr>
+          <tr><td><strong>Auth gaps</strong></td><td>41% of servers have zero authentication; 1,862 internet-exposed with no auth</td></tr>
+          <tr><td><strong>Discovery fragmentation</strong></td><td>Multiple competing directories (PulseMCP, mcp.so, etc.) — no single source of truth</td></tr>
+          <tr><td><strong>No observability</strong></td><td>No standard audit trails, structured logging, or tracing for tool calls</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin: 1.25rem 0 0.75rem; font-size: 1.1rem;">Emerging Solutions</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Solution</th><th>Approach</th><th>Reduction</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Just-in-time loading</strong> (Claude Code)</td><td>Load tools only when contextually relevant</td><td>95–98%</td></tr>
+          <tr><td><strong>Code Mode</strong> (Anthropic)</td><td>Compressed tool representations</td><td>98.7%</td></tr>
+          <tr><td><strong>MCPlexor</strong></td><td>Smart tool multiplexing and batching</td><td>95%</td></tr>
+          <tr><td><strong>Tool bundling</strong></td><td>Consolidate CRUD into higher-level composite tools</td><td>Variable</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin: 1.25rem 0 0.75rem; font-size: 1.1rem;">Protocol Comparison</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Protocol</th><th>Focus</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>MCP</strong></td><td>Agent-to-tool</td><td><span class="pill pill-defacto">De facto standard</span> 97M+ downloads</td></tr>
+          <tr><td><strong>A2A</strong> (Google)</td><td>Agent-to-agent</td><td><span class="pill pill-defacto">v1.0 shipped</span> gRPC, Linux Foundation</td></tr>
+          <tr><td><strong>AG-UI</strong></td><td>Agent-to-UI</td><td><span class="pill pill-emerging">Emerging</span></td></tr>
+          <tr><td><strong>OpenAI Functions</strong></td><td>Model-to-function</td><td><span class="pill pill-vendor">Vendor-specific</span> Simpler but locked in</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 5. Developer Tools & Infrastructure -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">6</span> Developer Tools &amp; Infrastructure</div>
+
+    <h3 style="margin-bottom: 0.75rem; font-size: 1.1rem;">Maturity Map</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Layer</th><th>Maturity</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Code generation</td><td><span class="pill pill-mature">Mature</span></td><td>Copilot 37%, Claude Code 18%</td></tr>
+          <tr><td>Code review</td><td><span class="pill pill-early-mature">Rapidly maturing</span></td><td>$4B market — CodeRabbit, Qodo</td></tr>
+          <tr><td>Agent orchestration</td><td><span class="pill pill-early-mature">Early-mature</span></td><td>Everyone shipped, patterns emerging</td></tr>
+          <tr><td>Prompt management</td><td><span class="pill pill-early">Early</span></td><td>Git-based approaches emerging</td></tr>
+          <tr><td>LLM observability</td><td><span class="pill pill-early">Early</span></td><td>18% adoption</td></tr>
+          <tr><td>Eval frameworks</td><td><span class="pill pill-early">Early</span></td><td>No dominant standard</td></tr>
+          <tr><td>RAG infra</td><td><span class="pill pill-early-mature">Mixed</span></td><td>Mature storage, early tooling</td></tr>
+          <tr><td>Local inference</td><td><span class="pill pill-mature">Mature</span></td><td>Ollama 52M downloads</td></tr>
+          <tr><td>MCP interop</td><td><span class="pill pill-mature">Mature</span></td><td>97M installs</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin: 1.25rem 0 0.75rem; font-size: 1.1rem;">Notable New Projects (Last 30 Days)</h3>
+    <div class="project-list">
+      <div class="project-item">
+        <div class="proj-name">OpenCLI</div>
+        <div class="proj-stars">15K stars</div>
+        <div class="proj-desc">Universal CLI hub for agents</div>
+      </div>
+      <div class="project-item">
+        <div class="proj-name">Crucix</div>
+        <div class="proj-stars">9K stars</div>
+        <div class="proj-desc">Personal intelligence agent</div>
+      </div>
+      <div class="project-item">
+        <div class="proj-name">Lark CLI</div>
+        <div class="proj-stars">8K stars</div>
+        <div class="proj-desc">Official Lark/Feishu CLI</div>
+      </div>
+      <div class="project-item">
+        <div class="proj-name">ZeroBoot</div>
+        <div class="proj-stars">2K stars</div>
+        <div class="proj-desc">Sub-ms VM sandboxes for agents</div>
+      </div>
+      <div class="project-item">
+        <div class="proj-name">HolaOS</div>
+        <div class="proj-stars">2K stars</div>
+        <div class="proj-desc">Agent environment for long-horizon work</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Sources -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">7</span> Sources</div>
+    <div class="sources">
+      <ul>
+        <li><a href="https://github.com/modelcontextprotocol" target="_blank">Model Context Protocol (GitHub)</a></li>
+        <li><a href="https://pulsemcp.com" target="_blank">PulseMCP — MCP Server Directory</a></li>
+        <li><a href="https://google.github.io/A2A/" target="_blank">A2A Protocol (Google)</a></li>
+        <li><a href="https://github.com/crewAIInc/crewAI" target="_blank">CrewAI</a></li>
+        <li><a href="https://github.com/microsoft/autogen" target="_blank">AutoGen (Microsoft)</a></li>
+        <li><a href="https://github.com/langchain-ai/langgraph" target="_blank">LangGraph</a></li>
+        <li><a href="https://github.com/openai/openai-agents-python" target="_blank">OpenAI Agents SDK</a></li>
+        <li><a href="https://github.com/mastra-ai/mastra" target="_blank">Mastra</a></li>
+        <li><a href="https://github.com/pydantic/pydantic-ai" target="_blank">Pydantic AI</a></li>
+        <li><a href="https://github.com/deepset-ai/haystack" target="_blank">Haystack</a></li>
+        <li><a href="https://github.com/microsoft/semantic-kernel" target="_blank">Semantic Kernel</a></li>
+        <li><a href="https://www.linuxfoundation.org/" target="_blank">Linux Foundation</a></li>
+        <li><a href="https://github.blog" target="_blank">GitHub Blog — AI Code Statistics</a></li>
+        <li><a href="https://ollama.com" target="_blank">Ollama</a></li>
+        <li><a href="https://arxiv.org" target="_blank">arXiv — MCP Security & Context Research</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Framework chart
+const ctx = document.getElementById('frameworkChart').getContext('2d');
+
+const frameworks = [
+  { name: 'AutoGen', stars: 57, status: 'stalling' },
+  { name: 'CrewAI', stars: 49, status: 'hot' },
+  { name: 'LangGraph', stars: 29, status: 'hot' },
+  { name: 'Semantic Kernel', stars: 27, status: 'steady' },
+  { name: 'Haystack', stars: 25, status: 'steady' },
+  { name: 'Mastra', stars: 23, status: 'hot' },
+  { name: 'OpenAI Agents SDK', stars: 20, status: 'hot' },
+  { name: '12-Factor Agents', stars: 19, status: 'steady' },
+  { name: 'ElizaOS', stars: 18, status: 'stalling' },
+  { name: 'SuperAGI', stars: 17, status: 'stalling' },
+  { name: 'Pydantic AI', stars: 16, status: 'hot' },
+];
+
+const colorMap = {
+  hot: '#3fb950',
+  steady: '#d29922',
+  stalling: '#f85149'
+};
+
+const labelMap = {
+  hot: 'Hot',
+  steady: 'Steady',
+  stalling: 'Stalling'
+};
+
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: frameworks.map(f => f.name),
+    datasets: [{
+      label: 'GitHub Stars (K)',
+      data: frameworks.map(f => f.stars),
+      backgroundColor: frameworks.map(f => colorMap[f.status] + '33'),
+      borderColor: frameworks.map(f => colorMap[f.status]),
+      borderWidth: 2,
+      borderRadius: 4,
+      barPercentage: 0.7,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 1.6,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#161b22',
+        titleColor: '#e6edf3',
+        bodyColor: '#8b949e',
+        borderColor: '#30363d',
+        borderWidth: 1,
+        callbacks: {
+          label: function(context) {
+            const f = frameworks[context.dataIndex];
+            return `${f.stars}K stars — ${labelMap[f.status]}`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: '#30363d22' },
+        ticks: {
+          color: '#8b949e',
+          callback: v => v + 'K'
+        },
+        title: {
+          display: true,
+          text: 'GitHub Stars (thousands)',
+          color: '#8b949e'
+        }
+      },
+      y: {
+        grid: { display: false },
+        ticks: {
+          color: '#e6edf3',
+          font: { weight: '500' },
+          callback: function(value, index) {
+            const f = frameworks[index];
+            return f.name;
+          }
+        }
+      }
+    }
+  },
+  plugins: [{
+    afterDatasetsDraw: function(chart) {
+      const ctx = chart.ctx;
+      chart.data.datasets[0].data.forEach((val, i) => {
+        const meta = chart.getDatasetMeta(0);
+        const bar = meta.data[i];
+        const f = frameworks[i];
+        ctx.save();
+        ctx.fillStyle = colorMap[f.status];
+        ctx.font = 'bold 11px -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labelMap[f.status], bar.x + 8, bar.y);
+        ctx.restore();
+      });
+    }
+  }]
+});
+</script>
+
+</body>
+</html>

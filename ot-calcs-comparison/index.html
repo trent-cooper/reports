@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OT Calculation Comparison: DW Exporter vs Payroll Preview</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --secondary: #7c3aed;
+      --green: #059669;
+      --orange: #d97706;
+      --red: #dc2626;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-800);
+      line-height: 1.6;
+    }
+
+    .slide {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 3rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .slide + .slide {
+      border-top: 3px solid var(--gray-200);
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: var(--gray-900);
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      color: var(--gray-900);
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      color: var(--gray-700);
+      margin-bottom: 0.75rem;
+    }
+
+    .subtitle {
+      font-size: 1.25rem;
+      color: var(--gray-600);
+      margin-bottom: 2rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+
+    .badge-dw { background: #dbeafe; color: #1d4ed8; }
+    .badge-payroll { background: #ede9fe; color: #6d28d9; }
+    .badge-both { background: #d1fae5; color: #047857; }
+    .badge-scenario { background: #fef3c7; color: #92400e; }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+      border: 1px solid var(--gray-200);
+    }
+
+    .card-dw { border-left: 4px solid var(--primary); }
+    .card-payroll { border-left: 4px solid var(--secondary); }
+    .card-green { border-left: 4px solid var(--green); }
+    .card-orange { border-left: 4px solid var(--orange); }
+    .card-red { border-left: 4px solid var(--red); }
+
+    .card h3 { margin-bottom: 0.5rem; }
+
+    .card p, .card ul {
+      color: var(--gray-600);
+      font-size: 0.95rem;
+    }
+
+    .card ul { padding-left: 1.25rem; }
+    .card ul li { margin-bottom: 0.35rem; }
+
+    .scenario {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 1.5rem 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border: 1px solid var(--gray-200);
+    }
+
+    .week-bar {
+      display: flex;
+      border-radius: 8px;
+      overflow: hidden;
+      height: 56px;
+      margin: 0.5rem 0 0.5rem 0;
+      border: 1px solid var(--gray-200);
+    }
+
+    .week-segment {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: white;
+      padding: 0 0.25rem;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .loc-883 { background: #3b82f6; }
+    .loc-619 { background: #8b5cf6; }
+    .loc-885 { background: #10b981; }
+    .loc-ot { background: #f59e0b; }
+    .loc-off { background: var(--gray-200); }
+
+    .week-labels {
+      display: flex;
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      margin-bottom: 0;
+    }
+
+    .week-labels span { text-align: center; }
+
+    .legend {
+      display: flex;
+      gap: 1.25rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      color: var(--gray-600);
+    }
+
+    .legend-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+    }
+
+    .alloc-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    .alloc-table th {
+      background: var(--gray-100);
+      padding: 0.6rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--gray-200);
+    }
+
+    .alloc-table td {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .alloc-table .ot-cell { font-weight: 700; color: var(--orange); }
+    .alloc-table .reg-cell { color: var(--green); font-weight: 600; }
+    .alloc-table .zero-cell { color: var(--gray-300); }
+    .highlight-row { background: #fffbeb; }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.9rem;
+    }
+
+    .comparison-table th {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--gray-200);
+    }
+
+    .comparison-table th:first-child { background: var(--gray-100); }
+    .comparison-table th.dw-col { background: #eff6ff; color: #1d4ed8; }
+    .comparison-table th.payroll-col { background: #f5f3ff; color: #6d28d9; }
+
+    .comparison-table td {
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid var(--gray-100);
+      vertical-align: top;
+    }
+
+    .comparison-table td:first-child {
+      font-weight: 600;
+      color: var(--gray-700);
+      background: var(--gray-50);
+    }
+
+    .callout {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1.25rem 0;
+      font-size: 0.95rem;
+      color: #92400e;
+    }
+
+    .callout-blue {
+      background: #eff6ff;
+      border-color: #93c5fd;
+      color: #1e40af;
+    }
+
+    .callout-green {
+      background: #ecfdf5;
+      border-color: #6ee7b7;
+      color: #065f46;
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .flow-steps {
+      display: flex;
+      gap: 0.75rem;
+      margin: 1.5rem 0;
+      flex-wrap: wrap;
+    }
+
+    .flow-step {
+      flex: 1;
+      min-width: 160px;
+      background: white;
+      border-radius: 10px;
+      padding: 1.25rem;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid var(--gray-200);
+      position: relative;
+    }
+
+    .flow-step::after {
+      content: '\2192';
+      position: absolute;
+      right: -16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2rem;
+      color: var(--gray-300);
+    }
+
+    .flow-step:last-child::after { content: ''; }
+
+    .flow-step .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+
+    .step-num-dw { background: var(--primary); }
+    .step-num-payroll { background: var(--secondary); }
+
+    .flow-step p { font-size: 0.85rem; color: var(--gray-600); }
+
+    .divider {
+      width: 60px;
+      height: 3px;
+      background: var(--gray-200);
+      margin: 2rem 0;
+      border-radius: 2px;
+    }
+
+    .queue-visual {
+      display: flex;
+      gap: 0.5rem;
+      margin: 0.75rem 0;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .queue-block {
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: white;
+    }
+
+    .queue-arrow {
+      color: var(--gray-400);
+      font-size: 1.1rem;
+    }
+
+    .impact-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin: 1.5rem 0;
+    }
+
+    /* Running total tracker */
+    .tracker {
+      margin: 1.5rem 0;
+    }
+
+    .tracker-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 0.9rem;
+    }
+
+    .tracker-row:last-child { border-bottom: none; }
+
+    .tracker-day {
+      width: 50px;
+      font-weight: 600;
+      color: var(--gray-700);
+      flex-shrink: 0;
+    }
+
+    .tracker-loc {
+      width: 80px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+
+    .tracker-bar-container {
+      flex: 1;
+      position: relative;
+      height: 28px;
+    }
+
+    .tracker-bar {
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      padding: 0 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: white;
+      position: absolute;
+      left: 0;
+    }
+
+    .tracker-total {
+      width: 120px;
+      text-align: right;
+      font-size: 0.85rem;
+      color: var(--gray-600);
+      flex-shrink: 0;
+    }
+
+    .tracker-total strong {
+      color: var(--gray-800);
+    }
+
+    .ot-line {
+      position: absolute;
+      left: calc(40 / 55 * 100%);
+      top: -4px;
+      bottom: -4px;
+      width: 2px;
+      background: var(--red);
+      z-index: 10;
+    }
+
+    .ot-label {
+      position: absolute;
+      left: calc(40 / 55 * 100%);
+      top: -20px;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--red);
+      white-space: nowrap;
+    }
+
+    .cron-diagram {
+      display: flex;
+      gap: 0.5rem;
+      align-items: stretch;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .cron-tick {
+      flex: 1;
+      min-width: 70px;
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 6px;
+      padding: 0.5rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--gray-600);
+    }
+
+    .cron-tick.active {
+      border-color: var(--primary);
+      background: #eff6ff;
+    }
+
+    .cron-tick .tick-time {
+      font-weight: 700;
+      color: var(--gray-800);
+      font-size: 0.85rem;
+    }
+
+    .cron-tick.active .tick-time { color: var(--primary); }
+
+    /* Architecture diagram */
+    .arch-flow {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin: 1.5rem 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .arch-box {
+      padding: 1rem 1.25rem;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 0.85rem;
+      min-width: 140px;
+    }
+
+    .arch-box-primary {
+      background: #dbeafe;
+      border: 2px solid #93c5fd;
+      color: #1e40af;
+      font-weight: 600;
+    }
+
+    .arch-box-secondary {
+      background: var(--gray-100);
+      border: 2px solid var(--gray-300);
+      color: var(--gray-700);
+    }
+
+    .arch-box-data {
+      background: #fef3c7;
+      border: 2px solid #fcd34d;
+      color: #92400e;
+    }
+
+    .arch-arrow {
+      font-size: 1.5rem;
+      color: var(--gray-400);
+    }
+
+    /* Scroll indicator */
+    .scroll-indicator {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      color: var(--gray-400);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      opacity: 1;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .scroll-indicator.hidden { opacity: 0; }
+
+    .scroll-indicator .arrow {
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--gray-300);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: bounce 2s infinite;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .scroll-indicator .arrow svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--gray-400);
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(6px); }
+      60% { transform: translateY(3px); }
+    }
+
+    @media (max-width: 768px) {
+      .card-grid, .impact-grid { grid-template-columns: 1fr; }
+      .slide { padding: 2rem 1.25rem; }
+      h1 { font-size: 1.8rem; }
+      h2 { font-size: 1.4rem; }
+      .flow-steps { flex-direction: column; }
+      .flow-step::after { content: ''; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SLIDE 1: Title -->
+<div class="slide">
+  <h1>Overtime Calculation &amp; Allocation</h1>
+  <p class="subtitle">How two WFM systems calculate the same employee's overtime &mdash; and charge it to different locations</p>
+  <div class="divider"></div>
+  <div class="card-grid">
+    <div class="card card-dw">
+      <span class="badge badge-dw">System 1</span>
+      <h3>DW Labor Aggregates Exporter</h3>
+      <p>A <strong>cron job running every 15 minutes</strong>, recalculating labor costs for each location throughout the day. Sends aggregated totals to the Data Warehouse for reporting dashboards. A DynamoDB stream monitors for punch changes and queues affected days/locations for reprocessing on the next cron run.</p>
+    </div>
+    <div class="card card-payroll">
+      <span class="badge badge-payroll">System 2</span>
+      <h3>Payroll Preview (getPayroll)</h3>
+      <p>Runs <strong>on-demand</strong> when a manager opens the payroll screen. Calculates each employee's hours broken down by every location and job code they worked at across the full pay period.</p>
+    </div>
+  </div>
+  <div class="callout callout-blue">
+    <strong>Both systems agree on total OT hours for an employee.</strong>
+    The difference is which location gets "charged" that overtime cost. This presentation uses real payroll data to show exactly how and why.
+  </div>
+</div>
+
+<!-- SLIDE 2: How the DW Exporter Works (Architecture) -->
+<div class="slide">
+  <span class="badge badge-dw">System 1 &mdash; Architecture</span>
+  <h2>How the DW Exporter Runs</h2>
+  <p class="subtitle">A living, continuously-refreshing picture of each location's labor cost</p>
+
+  <div class="arch-flow">
+    <div class="arch-box arch-box-primary">
+      Cron Job<br><small>every 15 min</small>
+    </div>
+    <div class="arch-arrow">&rarr;</div>
+    <div class="arch-box arch-box-secondary">
+      For each location:<br>recalculate today
+    </div>
+    <div class="arch-arrow">&rarr;</div>
+    <div class="arch-box arch-box-data">
+      SQS &rarr; Data Warehouse
+    </div>
+  </div>
+
+  <div class="arch-flow">
+    <div class="arch-box arch-box-primary">
+      DynamoDB Stream<br><small>punch changed</small>
+    </div>
+    <div class="arch-arrow">&rarr;</div>
+    <div class="arch-box arch-box-secondary">
+      Queue: reprocess<br>that day + location
+    </div>
+    <div class="arch-arrow">&rarr;</div>
+    <div class="arch-box arch-box-data">
+      Next cron picks up<br>queued reprocessing
+    </div>
+  </div>
+
+  <div class="scenario" style="margin-top: 1.5rem;">
+    <h3>What a typical day looks like for one location</h3>
+    <p style="color: var(--gray-600); margin-bottom: 0.75rem;">The cron fires every 15 minutes. Each run recalculates the full day's labor cost up to the current moment, including all employees' hours from the start of the pay period (for OT tracking):</p>
+    <div class="cron-diagram">
+      <div class="cron-tick"><div class="tick-time">6:00a</div>Open &mdash; 0 hrs</div>
+      <div class="cron-tick"><div class="tick-time">9:00a</div>3 employees, 9 hrs</div>
+      <div class="cron-tick active"><div class="tick-time">12:00p</div>5 emp, 22 hrs</div>
+      <div class="cron-tick"><div class="tick-time">3:00p</div>4 emp, 30 hrs</div>
+      <div class="cron-tick"><div class="tick-time">6:00p</div>2 emp, 36 hrs</div>
+      <div class="cron-tick"><div class="tick-time">9:00p</div>Close &mdash; 38 hrs</div>
+    </div>
+    <p style="font-size: 0.85rem; color: var(--gray-600);">If a manager edits a punch from Tuesday on Thursday afternoon, the DynamoDB stream detects the change and queues Tuesday + that location for reprocessing. The next cron run at :15 picks it up and recalculates Tuesday's numbers.</p>
+  </div>
+
+  <div class="callout callout-blue">
+    <strong>The DW dashboard is a near-real-time, rolling view of labor cost.</strong>
+    It doesn't calculate once and freeze &mdash; it updates every 15 minutes as employees punch in/out, and retroactively when historical punches are edited.
+  </div>
+</div>
+
+<!-- SLIDE 3: Real Scenario -->
+<div class="slide">
+  <span class="badge badge-scenario">Real Data</span>
+  <h2>Jamie Rivera* &mdash; Week of 3/30 &ndash; 4/5</h2>
+  <p class="subtitle">Home location: 910883 &bull; Wage: $15/hr &bull; OT threshold: 40 hrs &bull; 3 locations worked<br><em style="font-size: 0.85rem;">* Name sanitized. All hours and dollar figures are from real payroll data.</em></p>
+
+  <div class="scenario">
+    <div class="week-labels" style="display:flex; margin-top:0.5rem;">
+      <span style="flex:14.03">Mon 3/30</span>
+      <span style="flex:2; color: var(--gray-300);">Tue</span>
+      <span style="flex:10.08">Wed 4/1</span>
+      <span style="flex:9.35">Thu 4/2</span>
+      <span style="flex:10.52">Fri 4/3</span>
+      <span style="flex:2; color: var(--gray-300);">Sat</span>
+      <span style="flex:10.08">Sun 4/5</span>
+    </div>
+    <div class="week-bar">
+      <div class="week-segment loc-883" style="flex:10.03" title="910883: 10.03h">883: 10.03h</div>
+      <div class="week-segment loc-619" style="flex:4.00" title="915619: 4.00h">619: 4h</div>
+      <div class="week-segment loc-off" style="flex:2"></div>
+      <div class="week-segment loc-883" style="flex:10.08" title="910883: 10.08h">883: 10.08h</div>
+      <div class="week-segment loc-883" style="flex:9.35" title="910883: 9.35h">883: 9.35h</div>
+      <div class="week-segment loc-885" style="flex:10.52" title="910885: 10.52h">885: 10.52h</div>
+      <div class="week-segment loc-off" style="flex:2"></div>
+      <div class="week-segment loc-883" style="flex:10.08" title="910883: 10.08h">883: 10.08h</div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot loc-883"></div> 910883 &mdash; Home (39.54h)</div>
+      <div class="legend-item"><div class="legend-dot loc-619"></div> 915619 &mdash; Shared (4.00h)</div>
+      <div class="legend-item"><div class="legend-dot loc-885"></div> 910885 &mdash; Shared (10.52h)</div>
+    </div>
+
+    <table class="alloc-table" style="margin-top: 1.25rem;">
+      <tr>
+        <th>Day</th><th>Location</th><th>Hours</th><th>Running Total</th>
+      </tr>
+      <tr><td>Mon 3/30</td><td><span style="color:#3b82f6; font-weight:600;">910883</span></td><td>10.03</td><td>10.03</td></tr>
+      <tr><td>Mon 3/30</td><td><span style="color:#8b5cf6; font-weight:600;">915619</span></td><td>4.00</td><td>14.03</td></tr>
+      <tr style="color: var(--gray-300);"><td>Tue 3/31</td><td>&mdash;</td><td>0</td><td>14.03</td></tr>
+      <tr><td>Wed 4/1</td><td><span style="color:#3b82f6; font-weight:600;">910883</span></td><td>10.08</td><td>24.11</td></tr>
+      <tr><td>Thu 4/2</td><td><span style="color:#3b82f6; font-weight:600;">910883</span></td><td>9.35</td><td>33.46</td></tr>
+      <tr class="highlight-row"><td>Fri 4/3</td><td><span style="color:#10b981; font-weight:600;">910885</span></td><td>10.52</td><td style="font-weight:700;">43.98 <span style="color: var(--orange);">&larr; crosses 40</span></td></tr>
+      <tr style="color: var(--gray-300);"><td>Sat 4/4</td><td>&mdash;</td><td>0</td><td>43.98</td></tr>
+      <tr class="highlight-row"><td>Sun 4/5</td><td><span style="color:#3b82f6; font-weight:600;">910883</span></td><td>10.08</td><td style="font-weight:700;">54.06 <span style="color: var(--orange);">all OT</span></td></tr>
+    </table>
+
+    <p style="margin-top: 1rem; font-size: 0.95rem;">
+      <strong>Total: 54.06 hours = 40.00 regular + 14.06 overtime.</strong>
+      The question: which locations pay for those 14.06 OT hours?
+    </p>
+  </div>
+</div>
+
+<!-- SLIDE 4: DW Exporter Walkthrough -->
+<div class="slide">
+  <span class="badge badge-dw">System 1</span>
+  <h2>DW Exporter: Chronological, Per-Location</h2>
+  <p class="subtitle">Each location is processed independently. Cross-location hours count toward the OT threshold but aren't costed.</p>
+
+  <div class="scenario">
+    <h3>Processing location 910883 (Jamie's home store)</h3>
+    <p style="color: var(--gray-600); margin-bottom: 1rem;">The cron fetches all of Jamie's punches across the org for the pay period, but only generates dollar amounts for punches at 910883:</p>
+
+    <table class="alloc-table">
+      <tr><th>Day</th><th>Location</th><th>Hours</th><th>Running Total</th><th>Costed?</th><th>Classification</th></tr>
+      <tr>
+        <td>Mon</td><td style="color:#3b82f6; font-weight:600;">910883</td><td>10.03</td><td>10.03</td>
+        <td class="reg-cell">Yes</td><td class="reg-cell">10.03 reg</td>
+      </tr>
+      <tr>
+        <td>Mon</td><td style="color:#8b5cf6; font-weight:600;">915619</td><td>4.00</td><td>14.03</td>
+        <td class="zero-cell">No &mdash; different loc</td><td class="zero-cell">&mdash;</td>
+      </tr>
+      <tr>
+        <td>Wed</td><td style="color:#3b82f6; font-weight:600;">910883</td><td>10.08</td><td>24.11</td>
+        <td class="reg-cell">Yes</td><td class="reg-cell">10.08 reg</td>
+      </tr>
+      <tr>
+        <td>Thu</td><td style="color:#3b82f6; font-weight:600;">910883</td><td>9.35</td><td>33.46</td>
+        <td class="reg-cell">Yes</td><td class="reg-cell">9.35 reg</td>
+      </tr>
+      <tr>
+        <td>Fri</td><td style="color:#10b981; font-weight:600;">910885</td><td>10.52</td><td>43.98</td>
+        <td class="zero-cell">No &mdash; different loc</td><td class="zero-cell">&mdash;</td>
+      </tr>
+      <tr class="highlight-row">
+        <td>Sun</td><td style="color:#3b82f6; font-weight:600;">910883</td><td>10.08</td><td>54.06</td>
+        <td class="ot-cell">Yes</td><td class="ot-cell">10.08 OT (already past 40)</td>
+      </tr>
+    </table>
+
+    <div class="callout" style="margin-top: 1rem;">
+      <strong>910883 result: 29.46 reg + 10.08 OT</strong>
+      By Friday evening, the running total is 43.98 (past 40). When Sunday's 10.08h at 910883 is processed, the counter is already in OT territory, so every hour on Sunday is overtime.
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="scenario" style="margin:0;">
+      <h3>Processing location 910885</h3>
+      <p style="color: var(--gray-600); font-size: 0.9rem;">Non-local punches (Mon thru Thu) advance the running total to 33.46. Then Fri's 10.52h at 910885 is the first costed shift:</p>
+      <ul style="margin-top: 0.5rem; padding-left: 1.25rem; font-size: 0.9rem; color: var(--gray-600);">
+        <li>First <strong>6.54h</strong> are regular (33.46 &rarr; 40.00)</li>
+        <li>Remaining <strong>3.98h</strong> are overtime (40.00 &rarr; 43.98)</li>
+      </ul>
+      <p style="margin-top: 0.5rem; font-weight: 600; color: var(--orange); font-size: 0.9rem;">910885 result: 6.54 reg + 3.98 OT</p>
+    </div>
+    <div class="scenario" style="margin:0;">
+      <h3>Processing location 915619</h3>
+      <p style="color: var(--gray-600); font-size: 0.9rem;">Monday's 10.03h at 910883 advances the total to 10.03. Then the 4.00h at 915619 is costed:</p>
+      <ul style="margin-top: 0.5rem; padding-left: 1.25rem; font-size: 0.9rem; color: var(--gray-600);">
+        <li>All <strong>4.00h</strong> are regular (10.03 &rarr; 14.03)</li>
+        <li>Well below the 40h threshold</li>
+      </ul>
+      <p style="margin-top: 0.5rem; font-weight: 600; color: var(--green); font-size: 0.9rem;">915619 result: 4.00 reg + 0.00 OT</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5: Payroll Preview Walkthrough -->
+<div class="slide">
+  <span class="badge badge-payroll">System 2</span>
+  <h2>Payroll Preview: Primary-First Queue</h2>
+  <p class="subtitle">All locations are processed together, but the home store's hours are counted first.</p>
+
+  <div class="scenario">
+    <h3>The Queue: Primary location 910883 goes first</h3>
+    <p style="color: var(--gray-600); margin-bottom: 0.75rem;">Punches are split into two queues &mdash; primary location, then secondary locations. The primary queue is placed first, so those hours fill up the regular bucket before any secondary hours are evaluated:</p>
+
+    <div class="queue-visual" style="margin: 1rem 0;">
+      <span style="font-size: 0.75rem; color: var(--gray-600); font-weight: 600; min-width: 70px;">PRIMARY:</span>
+      <div class="queue-block loc-883">Mon 10.03h</div>
+      <div class="queue-arrow">&rarr;</div>
+      <div class="queue-block loc-883">Wed 10.08h</div>
+      <div class="queue-arrow">&rarr;</div>
+      <div class="queue-block loc-883">Thu 9.35h</div>
+      <div class="queue-arrow">&rarr;</div>
+      <div class="queue-block loc-883">Sun 10.08h</div>
+    </div>
+    <div class="queue-visual" style="margin: 0.5rem 0;">
+      <span style="font-size: 0.75rem; color: var(--gray-600); font-weight: 600; min-width: 70px;">SECONDARY:</span>
+      <div class="queue-block loc-619">Mon 4.00h</div>
+      <div class="queue-arrow">&rarr;</div>
+      <div class="queue-block loc-885">Fri 10.52h</div>
+    </div>
+  </div>
+
+  <div class="scenario">
+    <h3>Walking through the queue</h3>
+    <table class="alloc-table">
+      <tr><th>Queue Position</th><th>Location</th><th>Hours</th><th>Running Total</th><th>Classification</th></tr>
+      <tr>
+        <td>1 (primary)</td><td style="color:#3b82f6; font-weight:600;">910883 Mon</td><td>10.03</td><td>10.03</td>
+        <td class="reg-cell">10.03 reg</td>
+      </tr>
+      <tr>
+        <td>2 (primary)</td><td style="color:#3b82f6; font-weight:600;">910883 Wed</td><td>10.08</td><td>20.11</td>
+        <td class="reg-cell">10.08 reg</td>
+      </tr>
+      <tr>
+        <td>3 (primary)</td><td style="color:#3b82f6; font-weight:600;">910883 Thu</td><td>9.35</td><td>29.46</td>
+        <td class="reg-cell">9.35 reg</td>
+      </tr>
+      <tr>
+        <td>4 (primary)</td><td style="color:#3b82f6; font-weight:600;">910883 Sun</td><td>10.08</td><td>39.54</td>
+        <td class="reg-cell">10.08 reg</td>
+      </tr>
+      <tr style="border-top: 2px solid var(--gray-200);">
+        <td>5 (secondary)</td><td style="color:#8b5cf6; font-weight:600;">915619 Mon</td><td>4.00</td><td>43.54</td>
+        <td><span class="reg-cell">0.46 reg</span> + <span class="ot-cell">3.54 OT</span></td>
+      </tr>
+      <tr class="highlight-row">
+        <td>6 (secondary)</td><td style="color:#10b981; font-weight:600;">910885 Fri</td><td>10.52</td><td>54.06</td>
+        <td class="ot-cell">10.52 OT (all overtime)</td>
+      </tr>
+    </table>
+
+    <div class="callout" style="margin-top: 1rem;">
+      <strong>Sunday's 10.08h at 910883 is classified as regular &mdash; even though it happened after the employee crossed 40 chronologically.</strong>
+      Because primary-location hours are queued first, the home store gets to "use up" the regular-hour budget before secondary locations are considered. Sunday at 910883 (queue position 4) brings the total to 39.54 &mdash; still under 40.
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 6: Side-by-side results -->
+<div class="slide">
+  <span class="badge badge-both">Comparison</span>
+  <h2>Same 54.06 Hours, Different Cost Allocation</h2>
+  <p class="subtitle">Jamie Rivera &mdash; 40.00 regular + 14.06 overtime in both systems</p>
+
+  <table class="comparison-table">
+    <tr>
+      <th style="width: 22%;">Location</th>
+      <th class="dw-col" style="width: 13%;">DW Reg</th>
+      <th class="dw-col" style="width: 13%;">DW OT</th>
+      <th class="dw-col" style="width: 13%;">DW Gross</th>
+      <th class="payroll-col" style="width: 13%;">PP Reg</th>
+      <th class="payroll-col" style="width: 13%;">PP OT</th>
+      <th class="payroll-col" style="width: 13%;">PP Gross</th>
+    </tr>
+    <tr>
+      <td>910883 (home)</td>
+      <td>29.46</td>
+      <td style="color: var(--orange); font-weight: 700;">10.08</td>
+      <td>$668.60</td>
+      <td>39.54</td>
+      <td style="color: var(--gray-300);">0.00</td>
+      <td>$593.10</td>
+    </tr>
+    <tr>
+      <td>910885 (shared)</td>
+      <td>6.54</td>
+      <td style="color: var(--orange); font-weight: 700;">3.98</td>
+      <td>$187.65</td>
+      <td style="color: var(--gray-300);">0.00</td>
+      <td style="color: var(--orange); font-weight: 700;">10.52</td>
+      <td>$236.70</td>
+    </tr>
+    <tr>
+      <td>915619 (shared)</td>
+      <td>4.00</td>
+      <td style="color: var(--gray-300);">0.00</td>
+      <td>$60.00</td>
+      <td>0.46</td>
+      <td style="color: var(--orange); font-weight: 700;">3.54</td>
+      <td>$86.55</td>
+    </tr>
+    <tr style="font-weight: 700; border-top: 2px solid var(--gray-200);">
+      <td>TOTAL</td>
+      <td>40.00</td>
+      <td style="color: var(--orange);">14.06</td>
+      <td>$916.25</td>
+      <td>40.00</td>
+      <td style="color: var(--orange);">14.06</td>
+      <td>$916.35</td>
+    </tr>
+  </table>
+  <p style="font-size: 0.8rem; color: var(--gray-600); margin-top: 0.25rem;">* Small dollar differences due to rounding at different points in the calculation. Total employee pay is the same.</p>
+
+  <div class="impact-grid" style="margin-top: 1.5rem;">
+    <div class="card" style="text-align: center;">
+      <h3 style="color:#3b82f6;">910883 (Home)</h3>
+      <div style="margin: 0.75rem 0;">
+        <div style="font-size: 0.75rem; color: var(--gray-600);">DW Exporter</div>
+        <div style="font-size: 1.4rem; font-weight: 700; color: var(--orange);">10.08h OT</div>
+        <div style="font-size: 0.8rem; color: var(--gray-600);">$668.60</div>
+      </div>
+      <div style="border-top: 1px solid var(--gray-200); padding-top: 0.75rem;">
+        <div style="font-size: 0.75rem; color: var(--gray-600);">Payroll Preview</div>
+        <div style="font-size: 1.4rem; font-weight: 700; color: var(--green);">0h OT</div>
+        <div style="font-size: 0.8rem; color: var(--gray-600);">$593.10</div>
+      </div>
+      <div style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--red); font-weight: 600;">$75.50 gap</div>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h3 style="color:#10b981;">910885 (Shared)</h3>
+      <div style="margin: 0.75rem 0;">
+        <div style="font-size: 0.75rem; color: var(--gray-600);">DW Exporter</div>
+        <div style="font-size: 1.4rem; font-weight: 700; color: var(--orange);">3.98h OT</div>
+        <div style="font-size: 0.8rem; color: var(--gray-600);">$187.65</div>
+      </div>
+      <div style="border-top: 1px solid var(--gray-200); padding-top: 0.75rem;">
+        <div style="font-size: 0.75rem; color: var(--gray-600);">Payroll Preview</div>
+        <div style="font-size: 1.4rem; font-weight: 700; color: var(--orange);">10.52h OT</div>
+        <div style="font-size: 0.8rem; color: var(--gray-600);">$236.70</div>
+      </div>
+      <div style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--red); font-weight: 600;">$49.05 gap</div>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h3 style="color:#8b5cf6;">915619 (Shared)</h3>
+      <div style="margin: 0.75rem 0;">
+        <div style="font-size: 0.75rem; color: var(--gray-600);">DW Exporter</div>
+        <div style="font-size: 1.4rem; font-weight: 700; color: var(--green);">0h OT</div>
+        <div style="font-size: 0.8rem; color: var(--gray-600);">$60.00</div>
+      </div>
+      <div style="border-top: 1px solid var(--gray-200); padding-top: 0.75rem;">
+        <div style="font-size: 0.75rem; color: var(--gray-600);">Payroll Preview</div>
+        <div style="font-size: 1.4rem; font-weight: 700; color: var(--orange);">3.54h OT</div>
+        <div style="font-size: 0.8rem; color: var(--gray-600);">$86.55</div>
+      </div>
+      <div style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--red); font-weight: 600;">$26.55 gap</div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7: The Core Difference -->
+<div class="slide">
+  <h2>Why Are They Different?</h2>
+  <p class="subtitle">It comes down to one thing: the order hours are processed</p>
+
+  <div class="card-grid">
+    <div class="card card-dw">
+      <h3>DW Exporter: Chronological Order</h3>
+      <p style="margin-bottom: 0.75rem;">Processes all punches in the order they actually happened. When it's calculating for a specific location, it sees other-location hours as "already happened" &mdash; they advance the OT counter, but only the current location's hours generate dollars.</p>
+      <div class="queue-visual" style="margin-top: 0.5rem;">
+        <div class="queue-block loc-883" style="font-size: 0.7rem;">Mon 883</div>
+        <div class="queue-arrow">&rarr;</div>
+        <div class="queue-block loc-619" style="font-size: 0.7rem;">Mon 619</div>
+        <div class="queue-arrow">&rarr;</div>
+        <div class="queue-block loc-883" style="font-size: 0.7rem;">Wed 883</div>
+        <div class="queue-arrow">&rarr;</div>
+        <div class="queue-block loc-883" style="font-size: 0.7rem;">Thu 883</div>
+        <div class="queue-arrow">&rarr;</div>
+        <div class="queue-block loc-885" style="font-size: 0.7rem;">Fri 885</div>
+        <div class="queue-arrow">&rarr;</div>
+        <div class="queue-block loc-883" style="font-size: 0.7rem;">Sun 883</div>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-top: 0.75rem;">OT lands where the clock says it happened.</p>
+    </div>
+    <div class="card card-payroll">
+      <h3>Payroll Preview: Primary-First Order</h3>
+      <p style="margin-bottom: 0.75rem;">Groups all home-location punches first, then secondary locations. This means the home store fills up the 40-hour regular bucket before secondary locations even start being evaluated.</p>
+      <div class="queue-visual" style="margin-top: 0.5rem;">
+        <div class="queue-block loc-883" style="font-size: 0.7rem;">Mon 883</div>
+        <div class="queue-arrow">&rarr;</div>
+        <div class="queue-block loc-883" style="font-size: 0.7rem;">Wed 883</div>
+        <div class="queue-arrow">&rarr;</div>
+        <div class="queue-block loc-883" style="font-size: 0.7rem;">Thu 883</div>
+        <div class="queue-arrow">&rarr;</div>
+        <div class="queue-block loc-883" style="font-size: 0.7rem;">Sun 883</div>
+        <div class="queue-arrow">&rarr;</div>
+        <div class="queue-block loc-619" style="font-size: 0.7rem;">Mon 619</div>
+        <div class="queue-arrow">&rarr;</div>
+        <div class="queue-block loc-885" style="font-size: 0.7rem;">Fri 885</div>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--secondary); font-weight: 600; margin-top: 0.75rem;">OT lands on the locations that "borrowed" the employee.</p>
+    </div>
+  </div>
+
+  <div class="scenario" style="margin-top: 1.5rem;">
+    <h3>The Sunday Paradox</h3>
+    <p style="color: var(--gray-600);">
+      Sunday's 10.08h at the home store is the starkest example. In chronological reality, Jamie was already 3.98 hours into overtime before Sunday started (43.98h through Friday). Every minute on Sunday is overtime.
+    </p>
+    <p style="color: var(--gray-600); margin-top: 0.5rem;">
+      But in the payroll preview, Sunday is queue position 4 (primary). Only 39.54h of primary-location hours have been counted. Sunday is still regular time. The overtime gets pushed to the secondary locations that come later in the queue.
+    </p>
+    <div class="card-grid" style="margin-top: 1rem;">
+      <div style="text-align: center;">
+        <p style="font-weight: 600; color: var(--primary);">DW Exporter says Sunday is:</p>
+        <p style="font-size: 1.5rem; font-weight: 700; color: var(--orange);">10.08h OVERTIME</p>
+      </div>
+      <div style="text-align: center;">
+        <p style="font-weight: 600; color: var(--secondary);">Payroll Preview says Sunday is:</p>
+        <p style="font-size: 1.5rem; font-weight: 700; color: var(--green);">10.08h REGULAR</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 8: When Does This Matter? -->
+<div class="slide">
+  <h2>When Does This Matter?</h2>
+  <p class="subtitle">Practical implications for managers and reporting</p>
+
+  <div style="display: grid; gap: 1.25rem; margin: 1.5rem 0;">
+    <div class="card card-orange">
+      <h3>Dashboard vs. Payroll Screen Mismatch</h3>
+      <p>A manager at <strong>910883</strong> checking the DW dashboard sees $668.60 in labor cost for Jamie (including 10.08h OT). But when they open the payroll preview, they see $593.10 with zero overtime. Both are "correct" &mdash; they're answering different questions.</p>
+    </div>
+    <div class="card card-green">
+      <h3>The Employee's Paycheck Is Unaffected</h3>
+      <p>Jamie gets paid ~$916 either way. The allocation difference is purely about which location's P&amp;L absorbs the overtime premium. This is a <em>cost attribution</em> question, not a <em>compensation</em> question.</p>
+    </div>
+    <div class="card card-red">
+      <h3>Shared Employees Create Larger Gaps</h3>
+      <p>The more an employee bounces between locations, the bigger the discrepancy. Jamie's case shows a $75.50 gap at the home store alone. An employee working at 5+ locations in a heavy-hours week could produce gaps of $200+.</p>
+    </div>
+  </div>
+
+  <div class="comparison-table" style="margin-top: 1rem;">
+    <table class="comparison-table">
+      <tr>
+        <th style="width: 28%;">Question</th>
+        <th class="dw-col" style="width: 36%;">DW Exporter Answer</th>
+        <th class="payroll-col" style="width: 36%;">Payroll Preview Answer</th>
+      </tr>
+      <tr>
+        <td>When does it run?</td>
+        <td>Every 15 minutes (cron) + reprocessing queue from DynamoDB stream</td>
+        <td>On-demand when a manager opens the payroll screen</td>
+      </tr>
+      <tr>
+        <td>What question does it answer?</td>
+        <td>"What is the real-time labor cost for this location?"</td>
+        <td>"How do this employee's hours break down for payroll?"</td>
+      </tr>
+      <tr>
+        <td>Who is the audience?</td>
+        <td>Operations &amp; reporting dashboards</td>
+        <td>Store managers reviewing payroll</td>
+      </tr>
+      <tr>
+        <td>How is OT allocated?</td>
+        <td>Chronologically &mdash; charged where the employee physically worked when they crossed 40h</td>
+        <td>Primary-first &mdash; home store hours are always regular; secondary locations absorb OT</td>
+      </tr>
+      <tr>
+        <td>Jamie's 910883 OT?</td>
+        <td><strong style="color: var(--orange);">10.08 hours</strong></td>
+        <td><strong style="color: var(--green);">0.00 hours</strong></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- SLIDE 9: Summary -->
+<div class="slide">
+  <h2>Summary</h2>
+
+  <div class="scenario">
+    <div class="card-grid">
+      <div>
+        <h3 style="color: var(--primary);">DW Exporter</h3>
+        <ul style="padding-left: 1.25rem; color: var(--gray-600);">
+          <li>Cron every 15 minutes, live-updating</li>
+          <li>DynamoDB stream queues retroactive recalculations</li>
+          <li>Processes each location independently</li>
+          <li>Chronological punch ordering</li>
+          <li>Cross-location hours: <strong>counted but not costed</strong></li>
+          <li>OT charged to the location where the employee is physically working when the threshold is crossed</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color: var(--secondary);">Payroll Preview</h3>
+        <ul style="padding-left: 1.25rem; color: var(--gray-600);">
+          <li>On-demand, triggered by manager</li>
+          <li>Processes entire employee across all locations</li>
+          <li>Primary-location-first queue ordering</li>
+          <li>Cross-location hours: <strong>fully costed, but processed last</strong></li>
+          <li>OT charged to secondary (borrowed) locations, protecting the home store's regular-hour budget</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout callout-green" style="margin-top: 1.5rem;">
+    <strong>The total overtime hours and employee compensation are identical in both systems.</strong>
+    The difference is strictly in location-level cost attribution: which store's labor budget absorbs the OT premium. The DW exporter answers "what did it cost to run this store?" while payroll preview answers "what does this employee's paycheck look like from this store's perspective?"
+  </div>
+
+  <div class="divider"></div>
+  <p style="color: var(--gray-600); font-size: 0.85rem; margin-top: 1rem;">
+    Based on real payroll data for Jamie Rivera, pay period 3/30 &ndash; 4/5/2026.<br>
+    Source: <code>laborAggregatesToDWExporter/index.ts</code>, <code>query/getPayroll/index.ts</code>, <code>helpers/dwHelper.ts</code>, <code>helpers/payrollHelper.ts</code>
+  </p>
+</div>
+
+<div class="scroll-indicator" id="scrollIndicator">
+  <span>Scroll</span>
+  <div class="arrow">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+  </div>
+</div>
+
+<script>
+  const indicator = document.getElementById('scrollIndicator');
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    indicator.classList.toggle('hidden', scrolled > 200 || scrolled >= docHeight - 100);
+  }, { passive: true });
+  // Re-show when user is idle at top
+  let idleTimer;
+  window.addEventListener('scroll', () => {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      if (window.scrollY < 200) indicator.classList.remove('hidden');
+    }, 2000);
+  }, { passive: true });
+</script>
+</body>
+</html>

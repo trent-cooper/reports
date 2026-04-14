@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brain Vault — System Overview</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --orange: #db6d28;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --pink: #f778ba;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 40px 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2em;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 1.1em;
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+  }
+  h2 {
+    font-size: 1.5em;
+    margin: 40px 0 16px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2 .icon { font-size: 1.2em; }
+  h3 {
+    font-size: 1.1em;
+    color: var(--text);
+    margin: 20px 0 10px;
+  }
+
+  .changes-summary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 32px;
+  }
+  .change-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .change-item:last-child { border-bottom: none; }
+  .change-badge {
+    font-size: 0.75em;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .badge-new { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .badge-updated { background: rgba(88,166,255,0.15); color: var(--accent); border: 1px solid rgba(88,166,255,0.3); }
+  .badge-pattern { background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card-title {
+    font-weight: 600;
+    font-size: 1.05em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-desc {
+    color: var(--text-dim);
+    font-size: 0.9em;
+  }
+  .card-path {
+    font-family: 'SF Mono', SFMono-Regular, Menlo, monospace;
+    font-size: 0.8em;
+    color: var(--text-dim);
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 8px;
+    display: inline-block;
+  }
+
+  .flow-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0;
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    flex-wrap: wrap;
+  }
+  .flow-step {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.9em;
+    white-space: nowrap;
+  }
+  .flow-arrow {
+    color: var(--text-dim);
+    font-size: 1.2em;
+  }
+  .flow-label {
+    color: var(--text-dim);
+    font-size: 0.85em;
+    margin-bottom: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .heartbeat-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.9em;
+  }
+  .heartbeat-table th {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--border);
+    color: var(--text-dim);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8em;
+    letter-spacing: 0.05em;
+  }
+  .heartbeat-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cadence {
+    font-family: 'SF Mono', SFMono-Regular, Menlo, monospace;
+    font-size: 0.85em;
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .integrations {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .integration {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .integration-icon {
+    font-size: 1.8em;
+    flex-shrink: 0;
+    width: 40px;
+    text-align: center;
+  }
+  .integration-name { font-weight: 600; font-size: 0.95em; }
+  .integration-desc { font-size: 0.8em; color: var(--text-dim); }
+
+  .pattern-box {
+    background: var(--surface);
+    border-left: 3px solid var(--purple);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 12px 0;
+  }
+  .pattern-name {
+    font-weight: 600;
+    color: var(--purple);
+    margin-bottom: 4px;
+  }
+  .pattern-desc {
+    color: var(--text-dim);
+    font-size: 0.9em;
+  }
+
+  .vault-tree {
+    font-family: 'SF Mono', SFMono-Regular, Menlo, monospace;
+    font-size: 0.85em;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    line-height: 1.8;
+    margin: 16px 0;
+  }
+  .vault-tree .dir { color: var(--accent); }
+  .vault-tree .desc { color: var(--text-dim); }
+  .vault-tree .new-badge {
+    font-size: 0.7em;
+    background: rgba(63,185,80,0.15);
+    color: var(--green);
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+    font-family: -apple-system, sans-serif;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+  }
+  .dot-green { background: var(--green); }
+  .dot-yellow { background: var(--yellow); }
+  .dot-orange { background: var(--orange); }
+
+  footer {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.85em;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>Brain Vault</h1>
+<p class="subtitle">System overview and recent changes — April 8, 2026</p>
+
+<!-- ============ CHANGES SUMMARY ============ -->
+<h2><span class="icon">*</span> What Changed Today</h2>
+
+<div class="changes-summary">
+  <div class="change-item">
+    <span class="change-badge badge-pattern">PATTERN</span>
+    <div><strong>Heartbeat System</strong> — Replaced monolithic cron jobs with a sub-task system. Each task (morning briefing, backlog nudge, recurring audit, weekly review, running update) has its own cadence. Only due tasks execute each run. Config lives in <code>Tasks/heartbeat.md</code>.</div>
+  </div>
+  <div class="change-item">
+    <span class="change-badge badge-pattern">PATTERN</span>
+    <div><strong>Execute-Verify-Report (EVR)</strong> — Every automated action now follows three steps: execute, verify the result exists, report. Prevents silent failures where the agent acknowledges a task but doesn't complete it.</div>
+  </div>
+  <div class="change-item">
+    <span class="change-badge badge-pattern">PATTERN</span>
+    <div><strong>Notification Suppression</strong> — Mid-day heartbeat checks (backlog nudge, recurring audit) stay silent when there's nothing actionable. Only the morning briefing always sends. Reduces notification fatigue.</div>
+  </div>
+  <div class="change-item">
+    <span class="change-badge badge-pattern">PATTERN</span>
+    <div><strong>Temporal Context Loading</strong> — Session context now explicitly loads today's and yesterday's daily notes for continuity. "What was I doing yesterday?" is always answerable without searching.</div>
+  </div>
+  <div class="change-item">
+    <span class="change-badge badge-pattern">PATTERN</span>
+    <div><strong>Context Compression Template</strong> — Long sessions use a structured format (Goal, Progress, Decisions, Files, Next Steps, Critical Context) to preserve important information across compactions.</div>
+  </div>
+  <div class="change-item">
+    <span class="change-badge badge-new">NEW</span>
+    <div><strong>Journal System</strong> — Stream-of-consciousness entries via Telegram, stored in monthly files (<code>Journal/YYYY-MM.md</code>). Trigger phrases: "journal entry", "brain dump", "just thinking out loud". Summaries available on demand.</div>
+  </div>
+  <div class="change-item">
+    <span class="change-badge badge-new">NEW</span>
+    <div><strong>Weekly Review System</strong> — Sunday 6pm automated review generating <code>Reviews/YYYY-WXX.md</code>. Covers work, health, goals, backlog triage, next week preview.</div>
+  </div>
+  <div class="change-item">
+    <span class="change-badge badge-updated">UPDATED</span>
+    <div><strong>CLAUDE.md</strong> — Added heartbeat system docs, EVR discipline, suppression rules, session context loading, compression template, journal system, and weekly review specs.</div>
+  </div>
+  <div class="change-item">
+    <span class="change-badge badge-updated">UPDATED</span>
+    <div><strong>Cron Jobs</strong> — Replaced 2 monolithic jobs with 2 heartbeat-aware jobs that check sub-task cadences before executing.</div>
+  </div>
+</div>
+
+<!-- ============ ARCHITECTURE ============ -->
+<h2><span class="icon">+</span> System Architecture</h2>
+
+<h3>Daily Morning Flow (7:57 AM)</h3>
+<div class="flow-container">
+  <div class="flow-label">Heartbeat checks due tasks, then:</div>
+  <div class="flow-row">
+    <div class="flow-step">Garmin Sync</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Calendar (4x)</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Tasks + Inbox</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Health Data</div>
+  </div>
+  <div class="flow-row">
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Daily Note</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">EVR: Verify</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Telegram</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Receipt Print</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Update Heartbeat</div>
+  </div>
+</div>
+
+<h3>Weekly Review Flow (Sunday 6:03 PM)</h3>
+<div class="flow-container">
+  <div class="flow-row">
+    <div class="flow-step">Garmin Sync</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Read Week's Dailies</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Health Summary</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Next Week Calendar</div>
+  </div>
+  <div class="flow-row">
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Generate Review</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Archive Tasks</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Update Running</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">EVR: Verify All</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Telegram</div>
+  </div>
+</div>
+
+<h3>Telegram Message Flow (always-on)</h3>
+<div class="flow-container">
+  <div class="flow-row">
+    <div class="flow-step">Inbound Message</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Classify Intent</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Route to Vault</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Confirm via Telegram</div>
+  </div>
+  <div class="flow-label" style="margin-top:12px">Routing targets:</div>
+  <div class="flow-row">
+    <div class="flow-step">Tasks/active.md</div>
+    <div class="flow-step">Tasks/backlog.md</div>
+    <div class="flow-step">Tasks/recurring.md</div>
+    <div class="flow-step">Google Calendar</div>
+  </div>
+  <div class="flow-row">
+    <div class="flow-step">Lists/*.md</div>
+    <div class="flow-step">Ideas/*.md</div>
+    <div class="flow-step">Projects/*.md</div>
+    <div class="flow-step">Journal/YYYY-MM.md</div>
+  </div>
+</div>
+
+<!-- ============ HEARTBEAT TABLE ============ -->
+<h2><span class="icon">~</span> Heartbeat Sub-Tasks</h2>
+
+<div class="flow-container">
+  <table class="heartbeat-table">
+    <thead>
+      <tr><th>Task</th><th>Cadence</th><th>What It Does</th><th>Notifies?</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>morning_briefing</strong></td>
+        <td><span class="cadence">daily</span></td>
+        <td>Garmin sync, calendar, tasks, daily note, Telegram + receipt</td>
+        <td><span class="status-dot dot-green"></span>Always</td>
+      </tr>
+      <tr>
+        <td><strong>backlog_nudge</strong></td>
+        <td><span class="cadence">3 days</span></td>
+        <td>Review backlog, surface items to promote</td>
+        <td><span class="status-dot dot-yellow"></span>Only if actionable</td>
+      </tr>
+      <tr>
+        <td><strong>recurring_audit</strong></td>
+        <td><span class="cadence">7 days</span></td>
+        <td>Deep check recurring tasks, flag overdue</td>
+        <td><span class="status-dot dot-yellow"></span>Only if actionable</td>
+      </tr>
+      <tr>
+        <td><strong>weekly_review</strong></td>
+        <td><span class="cadence">Sunday</span></td>
+        <td>Full review: work, health, goals, backlog, next week</td>
+        <td><span class="status-dot dot-green"></span>Always</td>
+      </tr>
+      <tr>
+        <td><strong>running_status</strong></td>
+        <td><span class="cadence">7 days</span></td>
+        <td>Update Running/status.md with training data</td>
+        <td><span class="status-dot dot-orange"></span>Silent</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ INTEGRATIONS ============ -->
+<h2><span class="icon">#</span> Integrations</h2>
+
+<div class="integrations">
+  <div class="integration">
+    <div class="integration-icon">+</div>
+    <div>
+      <div class="integration-name">Google Calendar</div>
+      <div class="integration-desc">4 calendars (Primary, Work/Outlook, Family, Holidays). Full read/write on primary.</div>
+    </div>
+  </div>
+  <div class="integration">
+    <div class="integration-icon">~</div>
+    <div>
+      <div class="integration-name">Garmin Connect</div>
+      <div class="integration-desc">8 years of health data. Sleep, HRV, stress, body battery, runs, trends. Local SQLite DB.</div>
+    </div>
+  </div>
+  <div class="integration">
+    <div class="integration-icon">#</div>
+    <div>
+      <div class="integration-name">Telegram</div>
+      <div class="integration-desc">Always-on messaging channel. Brain dumps, task capture, briefing delivery.</div>
+    </div>
+  </div>
+  <div class="integration">
+    <div class="integration-icon">*</div>
+    <div>
+      <div class="integration-name">Receipt Printer</div>
+      <div class="integration-desc">Rongta RP820 80mm thermal. Image-rendered morning briefings via python-escpos.</div>
+    </div>
+  </div>
+  <div class="integration">
+    <div class="integration-icon">@</div>
+    <div>
+      <div class="integration-name">Gmail</div>
+      <div class="integration-desc">Read access for email context.</div>
+    </div>
+  </div>
+  <div class="integration">
+    <div class="integration-icon">!</div>
+    <div>
+      <div class="integration-name">Obsidian</div>
+      <div class="integration-desc">Vault is plain markdown, fully compatible. No plugin dependencies.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ VAULT STRUCTURE ============ -->
+<h2><span class="icon">/</span> Vault Structure</h2>
+
+<div class="vault-tree">
+<span class="dir">brain-vault/</span><br>
++-- <span class="dir">Daily/</span> <span class="desc">........... Daily notes (YYYY-MM-DD.md)</span><br>
++-- <span class="dir">Journal/</span> <span class="desc">......... Stream-of-consciousness entries (YYYY-MM.md)</span> <span class="new-badge">NEW</span><br>
++-- <span class="dir">Reviews/</span> <span class="desc">......... Weekly review summaries (YYYY-WXX.md)</span> <span class="new-badge">NEW</span><br>
++-- <span class="dir">Tasks/</span><br>
+|&nbsp;&nbsp; +-- active.md <span class="desc">...... Current focus items</span><br>
+|&nbsp;&nbsp; +-- backlog.md <span class="desc">..... Backburner list</span><br>
+|&nbsp;&nbsp; +-- recurring.md <span class="desc">... Periodic tasks with cadences</span><br>
+|&nbsp;&nbsp; +-- heartbeat.md <span class="desc">... Sub-task scheduler config</span> <span class="new-badge">NEW</span><br>
++-- <span class="dir">Work/</span><br>
+|&nbsp;&nbsp; +-- <span class="dir">Sessions/</span> <span class="desc">.... Work session summaries</span><br>
+|&nbsp;&nbsp; +-- <span class="dir">Projects/</span> <span class="desc">.... Active work projects</span><br>
+|&nbsp;&nbsp; +-- <span class="dir">Notes/</span> <span class="desc">....... Meeting notes, reference</span><br>
++-- <span class="dir">Projects/</span> <span class="desc">......... Personal projects (sewing, etc.)</span><br>
++-- <span class="dir">Running/</span> <span class="desc">.......... Training log, status, analysis</span><br>
++-- <span class="dir">Goals/</span> <span class="desc">............ Goal tracking and reviews</span><br>
++-- <span class="dir">Lists/</span> <span class="desc">............ Grocery, to-buy, reading</span><br>
++-- <span class="dir">Learning/</span> <span class="desc">......... Interview prep, study notes</span><br>
++-- <span class="dir">Ideas/</span> <span class="desc">............ Half-formed thoughts</span><br>
++-- <span class="dir">Inbox/</span> <span class="desc">............ Unsorted captures</span><br>
++-- <span class="dir">Templates/</span> <span class="desc">........ Note templates</span><br>
++-- <span class="dir">Archives/</span> <span class="desc">......... Completed/inactive items</span><br>
++-- <span class="dir">scripts/</span> <span class="desc">.......... Receipt printer + fonts</span><br>
++-- CLAUDE.md <span class="desc">......... System config and routing rules</span>
+</div>
+
+<!-- ============ DESIGN PATTERNS ============ -->
+<h2><span class="icon">^</span> Design Patterns</h2>
+
+<div class="pattern-box">
+  <div class="pattern-name">Heartbeat with Per-Task Cadences</div>
+  <div class="pattern-desc">Instead of monolithic scheduled jobs, each sub-task has its own interval. The cron job checks what's due and only executes those tasks. Prevents wasted API calls and keeps scheduled work focused. Inspired by OpenClaw's HEARTBEAT.md pattern.</div>
+</div>
+
+<div class="pattern-box">
+  <div class="pattern-name">Execute-Verify-Report (EVR)</div>
+  <div class="pattern-desc">Every automated action must be executed, verified (file exists, message delivered), then reported. Prevents the most common agent failure: acknowledging a task without completing it. Inspired by OpenClaw's Standing Orders.</div>
+</div>
+
+<div class="pattern-box">
+  <div class="pattern-name">Notification Suppression</div>
+  <div class="pattern-desc">Scheduled checks that find nothing actionable stay silent. Only ping when something matters. The morning briefing always sends, but mid-cycle checks suppress empty results. Inspired by OpenClaw's HEARTBEAT_OK.</div>
+</div>
+
+<div class="pattern-box">
+  <div class="pattern-name">Temporal Context Loading</div>
+  <div class="pattern-desc">Today's and yesterday's daily notes are loaded into session context for continuity. Provides "what was I doing?" awareness without loading the full archive. Inspired by OpenClaw's daily memory files.</div>
+</div>
+
+<div class="pattern-box">
+  <div class="pattern-name">Iterative Context Compression</div>
+  <div class="pattern-desc">Long sessions use a structured template (Goal, Progress, Decisions, Files, Next Steps, Critical Context) to preserve important information across context compactions. Prevents progressive information loss. Inspired by Hermes Agent's ContextCompressor.</div>
+</div>
+
+<div class="pattern-box">
+  <div class="pattern-name">Frozen Snapshot Memory</div>
+  <div class="pattern-desc">CLAUDE.md loads once at session start and stays stable for prompt cache efficiency. Live state comes from tool calls (reading files, querying Garmin). Memory writes update disk immediately but don't change the active system prompt.</div>
+</div>
+
+<div class="pattern-box">
+  <div class="pattern-name">Intent-Based Routing</div>
+  <div class="pattern-desc">Inbound Telegram messages are classified by intent and routed to the appropriate vault location. Calendar events go directly to Google Calendar. Tasks route by urgency. Journal entries go to monthly files. Shopping items go to lists.</div>
+</div>
+
+<!-- ============ KNOWN LIMITATIONS ============ -->
+<h2><span class="icon">!</span> Known Limitations</h2>
+
+<div class="grid">
+  <div class="card">
+    <div class="card-title"><span class="status-dot dot-orange"></span>Session-Only Scheduling</div>
+    <div class="card-desc">Cron jobs are in-memory and expire after 7 days or on session restart. Need to be recreated manually. Persistent scheduling solution still being researched.</div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="status-dot dot-orange"></span>Sleep Before Briefing</div>
+    <div class="card-desc">Laptop must be awake by 7:57 AM for the morning briefing to fire. macOS sleep/wake scheduling could solve this.</div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="status-dot dot-yellow"></span>Garmin Sync Dependency</div>
+    <div class="card-desc">Watch must sync to phone before the morning briefing for sleep data to be available. Trent needs to sync before ~7:50 AM.</div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="status-dot dot-yellow"></span>Cowork Still Active</div>
+    <div class="card-desc">Cowork scheduled tasks haven't been disabled yet. Can create duplicate daily notes and conflicting vault edits. Needs to be turned off.</div>
+  </div>
+</div>
+
+<footer>
+  Brain Vault System Overview — Generated 2026-04-08 — Claude Code (Opus 4.6)
+</footer>
+
+</body>
+</html>
