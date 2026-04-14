@@ -86,6 +86,7 @@
   .badge-new { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
   .badge-updated { background: rgba(88,166,255,0.15); color: var(--accent); border: 1px solid rgba(88,166,255,0.3); }
   .badge-pattern { background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+  .badge-active { background: rgba(210,153,34,0.15); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
 
   .grid {
     display: grid;
@@ -274,56 +275,56 @@
 <body>
 
 <h1>Brain Vault</h1>
-<p class="subtitle">System overview and recent changes — April 8, 2026</p>
+<p class="subtitle">System overview — April 14, 2026</p>
 
-<!-- ============ CHANGES SUMMARY ============ -->
-<h2><span class="icon">*</span> What Changed Today</h2>
+<!-- ============ CURRENT SYSTEM STATE ============ -->
+<h2><span class="icon">*</span> Current System State</h2>
 
 <div class="changes-summary">
   <div class="change-item">
-    <span class="change-badge badge-pattern">PATTERN</span>
-    <div><strong>Heartbeat System</strong> — Replaced monolithic cron jobs with a sub-task system. Each task (morning briefing, backlog nudge, recurring audit, weekly review, running update) has its own cadence. Only due tasks execute each run. Config lives in <code>Tasks/heartbeat.md</code>.</div>
+    <span class="change-badge badge-pattern">CORE</span>
+    <div><strong>Heartbeat System</strong> — launchd-driven sub-task scheduler. Each task has its own cadence and last-run timestamp in <code>Tasks/heartbeat.md</code>. File-based MCP channel triggers sessions via <code>.trigger</code> files. Published as open source: <code>claude-heartbeat</code>.</div>
   </div>
   <div class="change-item">
-    <span class="change-badge badge-pattern">PATTERN</span>
-    <div><strong>Execute-Verify-Report (EVR)</strong> — Every automated action now follows three steps: execute, verify the result exists, report. Prevents silent failures where the agent acknowledges a task but doesn't complete it.</div>
+    <span class="change-badge badge-pattern">CORE</span>
+    <div><strong>Execute-Verify-Report (EVR)</strong> — Every automated action follows three steps: execute, verify the result exists, report. "Done" without verification is not acceptable. If verification fails, report the failure rather than silently moving on.</div>
   </div>
   <div class="change-item">
-    <span class="change-badge badge-pattern">PATTERN</span>
-    <div><strong>Notification Suppression</strong> — Mid-day heartbeat checks (backlog nudge, recurring audit) stay silent when there's nothing actionable. Only the morning briefing always sends. Reduces notification fatigue.</div>
+    <span class="change-badge badge-pattern">CORE</span>
+    <div><strong>Notification Suppression</strong> — Mid-day heartbeat checks (backlog nudge, recurring audit) stay silent when there's nothing actionable. Only morning briefing and evening check-in always send. Reduces notification fatigue.</div>
   </div>
   <div class="change-item">
-    <span class="change-badge badge-pattern">PATTERN</span>
-    <div><strong>Temporal Context Loading</strong> — Session context now explicitly loads today's and yesterday's daily notes for continuity. "What was I doing yesterday?" is always answerable without searching.</div>
+    <span class="change-badge badge-pattern">CORE</span>
+    <div><strong>Session Snapshots</strong> — Every 3 days, structured snapshots are saved to <code>Work/Sessions/</code> as a long-term memory bridge across autocompact cycles. Delta-only updates preserve running context without repetition.</div>
   </div>
   <div class="change-item">
-    <span class="change-badge badge-pattern">PATTERN</span>
-    <div><strong>Context Compression Template</strong> — Long sessions use a structured format (Goal, Progress, Decisions, Files, Next Steps, Critical Context) to preserve important information across compactions.</div>
-  </div>
-  <div class="change-item">
-    <span class="change-badge badge-new">NEW</span>
-    <div><strong>Journal System</strong> — Stream-of-consciousness entries via Telegram, stored in monthly files (<code>Journal/YYYY-MM.md</code>). Trigger phrases: "journal entry", "brain dump", "just thinking out loud". Summaries available on demand.</div>
+    <span class="change-badge badge-active">ACTIVE</span>
+    <div><strong>Gut-Brain Protocol</strong> — 12-week probiotic + dietary intervention (April 9 - July 2, 2026). Daily evening check-ins via Telegram capture subjective ratings. Weekly rollups correlate subjective and objective biometrics. Protocol details in <code>Health/gut-brain-protocol.md</code>, daily log in <code>Health/protocol-log.md</code>.</div>
   </div>
   <div class="change-item">
     <span class="change-badge badge-new">NEW</span>
-    <div><strong>Weekly Review System</strong> — Sunday 6pm automated review generating <code>Reviews/YYYY-WXX.md</code>. Covers work, health, goals, backlog triage, next week preview.</div>
+    <div><strong>Webhook Endpoint</strong> — HMAC-signed external triggers via Cloudflare tunnel. Action registry whitelist prevents arbitrary text injection. External sources hit HTTPS, validated at <code>localhost:7600</code>, write <code>.trigger</code> files into MCP channel.</div>
+  </div>
+  <div class="change-item">
+    <span class="change-badge badge-new">NEW</span>
+    <div><strong>Dashboard + GitHub Pages</strong> — Reports hosted at <code>trent-cooper.github.io/reports/</code> with randomized routes. Dashboard deployed as part of the morning briefing flow.</div>
+  </div>
+  <div class="change-item">
+    <span class="change-badge badge-new">NEW</span>
+    <div><strong>AI News Aggregation</strong> — Morning briefing now includes AI news aggregation step, surfacing relevant developments alongside health and schedule data.</div>
   </div>
   <div class="change-item">
     <span class="change-badge badge-updated">UPDATED</span>
-    <div><strong>CLAUDE.md</strong> — Added heartbeat system docs, EVR discipline, suppression rules, session context loading, compression template, journal system, and weekly review specs.</div>
-  </div>
-  <div class="change-item">
-    <span class="change-badge badge-updated">UPDATED</span>
-    <div><strong>Cron Jobs</strong> — Replaced 2 monolithic jobs with 2 heartbeat-aware jobs that check sub-task cadences before executing.</div>
+    <div><strong>Garmin MCP (v0.1.9)</strong> — garmin-givemydata with incremental sync fix (PR #25 merged upstream). 8 years of health data in local SQLite. Sync runs before every briefing.</div>
   </div>
 </div>
 
 <!-- ============ ARCHITECTURE ============ -->
 <h2><span class="icon">+</span> System Architecture</h2>
 
-<h3>Daily Morning Flow (7:57 AM)</h3>
+<h3>Daily Morning Flow (7:57 AM via launchd heartbeat)</h3>
 <div class="flow-container">
-  <div class="flow-label">Heartbeat checks due tasks, then:</div>
+  <div class="flow-label">launchd fires heartbeat, writes .trigger file, MCP channel delivers to session:</div>
   <div class="flow-row">
     <div class="flow-step">Garmin Sync</div>
     <span class="flow-arrow">-></span>
@@ -342,33 +343,54 @@
     <div class="flow-step">Telegram</div>
     <span class="flow-arrow">-></span>
     <div class="flow-step">Receipt Print</div>
+  </div>
+  <div class="flow-row">
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Dashboard Deploy</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">AI News</div>
     <span class="flow-arrow">-></span>
     <div class="flow-step">Update Heartbeat</div>
   </div>
 </div>
 
-<h3>Weekly Review Flow (Sunday 6:03 PM)</h3>
+<h3>Weekly Review Flow (Sunday 6:03 PM via launchd heartbeat)</h3>
 <div class="flow-container">
+  <div class="flow-label">Same trigger path: launchd -> .trigger -> MCP channel -> session</div>
   <div class="flow-row">
-    <div class="flow-step">Garmin Sync</div>
-    <span class="flow-arrow">-></span>
     <div class="flow-step">Read Week's Dailies</div>
     <span class="flow-arrow">-></span>
     <div class="flow-step">Health Summary</div>
     <span class="flow-arrow">-></span>
     <div class="flow-step">Next Week Calendar</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Generate Review</div>
   </div>
   <div class="flow-row">
     <span class="flow-arrow">-></span>
-    <div class="flow-step">Generate Review</div>
-    <span class="flow-arrow">-></span>
     <div class="flow-step">Archive Tasks</div>
     <span class="flow-arrow">-></span>
-    <div class="flow-step">Update Running</div>
+    <div class="flow-step">Update Running Status</div>
     <span class="flow-arrow">-></span>
     <div class="flow-step">EVR: Verify All</div>
     <span class="flow-arrow">-></span>
-    <div class="flow-step">Telegram</div>
+    <div class="flow-step">Telegram Summary</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Update Heartbeat</div>
+  </div>
+</div>
+
+<h3>Evening Check-in Flow (7:03 PM via launchd heartbeat)</h3>
+<div class="flow-container">
+  <div class="flow-label">Same trigger path: launchd -> .trigger -> MCP channel -> session</div>
+  <div class="flow-row">
+    <div class="flow-step">Send Check-in Prompt</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Telegram Delivery</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Receive Response</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Log to protocol-log.md</div>
   </div>
 </div>
 
@@ -385,16 +407,37 @@
   </div>
   <div class="flow-label" style="margin-top:12px">Routing targets:</div>
   <div class="flow-row">
-    <div class="flow-step">Tasks/active.md</div>
-    <div class="flow-step">Tasks/backlog.md</div>
-    <div class="flow-step">Tasks/recurring.md</div>
-    <div class="flow-step">Google Calendar</div>
+    <div class="flow-step">Tasks</div>
+    <div class="flow-step">Calendar (Google API)</div>
+    <div class="flow-step">Lists</div>
+    <div class="flow-step">Ideas</div>
   </div>
   <div class="flow-row">
-    <div class="flow-step">Lists/*.md</div>
-    <div class="flow-step">Ideas/*.md</div>
-    <div class="flow-step">Projects/*.md</div>
-    <div class="flow-step">Journal/YYYY-MM.md</div>
+    <div class="flow-step">Projects</div>
+    <div class="flow-step">Journal</div>
+  </div>
+</div>
+
+<h3>Webhook Flow</h3>
+<div class="flow-container">
+  <div class="flow-row">
+    <div class="flow-step">External Source</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">HTTPS (Cloudflare Tunnel)</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">localhost:7600</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">HMAC Validation</div>
+  </div>
+  <div class="flow-row">
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Action Registry Whitelist</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Write .trigger File</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">MCP Channel</div>
+    <span class="flow-arrow">-></span>
+    <div class="flow-step">Session</div>
   </div>
 </div>
 
@@ -410,31 +453,43 @@
       <tr>
         <td><strong>morning_briefing</strong></td>
         <td><span class="cadence">daily</span></td>
-        <td>Garmin sync, calendar, tasks, daily note, Telegram + receipt</td>
+        <td>Full sync + briefing + receipt + dashboard + news</td>
+        <td><span class="status-dot dot-green"></span>Always</td>
+      </tr>
+      <tr>
+        <td><strong>evening_checkin</strong></td>
+        <td><span class="cadence">daily</span></td>
+        <td>Gut-brain protocol subjective ratings</td>
         <td><span class="status-dot dot-green"></span>Always</td>
       </tr>
       <tr>
         <td><strong>backlog_nudge</strong></td>
         <td><span class="cadence">3 days</span></td>
-        <td>Review backlog, surface items to promote</td>
+        <td>Review backlog for promotable items</td>
         <td><span class="status-dot dot-yellow"></span>Only if actionable</td>
       </tr>
       <tr>
         <td><strong>recurring_audit</strong></td>
         <td><span class="cadence">7 days</span></td>
-        <td>Deep check recurring tasks, flag overdue</td>
+        <td>Deep check recurring tasks for overdue</td>
         <td><span class="status-dot dot-yellow"></span>Only if actionable</td>
       </tr>
       <tr>
         <td><strong>weekly_review</strong></td>
         <td><span class="cadence">Sunday</span></td>
-        <td>Full review: work, health, goals, backlog, next week</td>
+        <td>Full review: work, health, goals, next week</td>
         <td><span class="status-dot dot-green"></span>Always</td>
       </tr>
       <tr>
         <td><strong>running_status</strong></td>
         <td><span class="cadence">7 days</span></td>
         <td>Update Running/status.md with training data</td>
+        <td><span class="status-dot dot-orange"></span>Silent</td>
+      </tr>
+      <tr>
+        <td><strong>session_snapshot</strong></td>
+        <td><span class="cadence">3 days</span></td>
+        <td>Long-term memory bridge for autocompact</td>
         <td><span class="status-dot dot-orange"></span>Silent</td>
       </tr>
     </tbody>
@@ -449,35 +504,35 @@
     <div class="integration-icon">+</div>
     <div>
       <div class="integration-name">Google Calendar</div>
-      <div class="integration-desc">4 calendars (Primary, Work/Outlook, Family, Holidays). Full read/write on primary.</div>
+      <div class="integration-desc">4 calendars (Primary, Work/Outlook, Family, Holidays). Full read/write on primary via direct API (list_events, create_event).</div>
     </div>
   </div>
   <div class="integration">
     <div class="integration-icon">~</div>
     <div>
       <div class="integration-name">Garmin Connect</div>
-      <div class="integration-desc">8 years of health data. Sleep, HRV, stress, body battery, runs, trends. Local SQLite DB.</div>
+      <div class="integration-desc">8 years of health data. garmin-givemydata MCP (v0.1.9). Local SQLite DB. Contributed incremental sync fix (PR #25 merged).</div>
     </div>
   </div>
   <div class="integration">
     <div class="integration-icon">#</div>
     <div>
       <div class="integration-name">Telegram</div>
-      <div class="integration-desc">Always-on messaging channel. Brain dumps, task capture, briefing delivery.</div>
+      <div class="integration-desc">Always-on messaging. DM + Heartbeats group. Brain dumps, task capture, briefing delivery.</div>
     </div>
   </div>
   <div class="integration">
     <div class="integration-icon">*</div>
     <div>
       <div class="integration-name">Receipt Printer</div>
-      <div class="integration-desc">Rongta RP820 80mm thermal. Image-rendered morning briefings via python-escpos.</div>
+      <div class="integration-desc">Rongta RP820 80mm thermal. Image-rendered via python-escpos + Pillow.</div>
     </div>
   </div>
   <div class="integration">
     <div class="integration-icon">@</div>
     <div>
       <div class="integration-name">Gmail</div>
-      <div class="integration-desc">Read access for email context.</div>
+      <div class="integration-desc">Read access via MCP connector.</div>
     </div>
   </div>
   <div class="integration">
@@ -485,6 +540,20 @@
     <div>
       <div class="integration-name">Obsidian</div>
       <div class="integration-desc">Vault is plain markdown, fully compatible. No plugin dependencies.</div>
+    </div>
+  </div>
+  <div class="integration">
+    <div class="integration-icon">/</div>
+    <div>
+      <div class="integration-name">GitHub Pages</div>
+      <div class="integration-desc">Reports hosted at trent-cooper.github.io/reports/ with randomized routes.</div>
+    </div>
+  </div>
+  <div class="integration">
+    <div class="integration-icon">^</div>
+    <div>
+      <div class="integration-name">Webhook Endpoint</div>
+      <div class="integration-desc">HMAC-signed, action registry whitelist, Cloudflare tunnel for remote access.</div>
     </div>
   </div>
 </div>
@@ -495,17 +564,18 @@
 <div class="vault-tree">
 <span class="dir">brain-vault/</span><br>
 +-- <span class="dir">Daily/</span> <span class="desc">........... Daily notes (YYYY-MM-DD.md)</span><br>
-+-- <span class="dir">Journal/</span> <span class="desc">......... Stream-of-consciousness entries (YYYY-MM.md)</span> <span class="new-badge">NEW</span><br>
-+-- <span class="dir">Reviews/</span> <span class="desc">......... Weekly review summaries (YYYY-WXX.md)</span> <span class="new-badge">NEW</span><br>
++-- <span class="dir">Journal/</span> <span class="desc">......... Stream-of-consciousness entries (YYYY-MM.md)</span><br>
++-- <span class="dir">Reviews/</span> <span class="desc">......... Weekly review summaries (YYYY-WXX.md)</span><br>
 +-- <span class="dir">Tasks/</span><br>
 |&nbsp;&nbsp; +-- active.md <span class="desc">...... Current focus items</span><br>
 |&nbsp;&nbsp; +-- backlog.md <span class="desc">..... Backburner list</span><br>
 |&nbsp;&nbsp; +-- recurring.md <span class="desc">... Periodic tasks with cadences</span><br>
-|&nbsp;&nbsp; +-- heartbeat.md <span class="desc">... Sub-task scheduler config</span> <span class="new-badge">NEW</span><br>
+|&nbsp;&nbsp; +-- heartbeat.md <span class="desc">... Sub-task scheduler config</span><br>
 +-- <span class="dir">Work/</span><br>
-|&nbsp;&nbsp; +-- <span class="dir">Sessions/</span> <span class="desc">.... Work session summaries</span><br>
+|&nbsp;&nbsp; +-- <span class="dir">Sessions/</span> <span class="desc">.... Work session summaries + snapshots</span><br>
 |&nbsp;&nbsp; +-- <span class="dir">Projects/</span> <span class="desc">.... Active work projects</span><br>
 |&nbsp;&nbsp; +-- <span class="dir">Notes/</span> <span class="desc">....... Meeting notes, reference</span><br>
++-- <span class="dir">Health/</span> <span class="desc">........... Gut-brain protocol, protocol log</span> <span class="new-badge">NEW</span><br>
 +-- <span class="dir">Projects/</span> <span class="desc">......... Personal projects (sewing, etc.)</span><br>
 +-- <span class="dir">Running/</span> <span class="desc">.......... Training log, status, analysis</span><br>
 +-- <span class="dir">Goals/</span> <span class="desc">............ Goal tracking and reviews</span><br>
@@ -523,38 +593,48 @@
 <h2><span class="icon">^</span> Design Patterns</h2>
 
 <div class="pattern-box">
-  <div class="pattern-name">Heartbeat with Per-Task Cadences</div>
-  <div class="pattern-desc">Instead of monolithic scheduled jobs, each sub-task has its own interval. The cron job checks what's due and only executes those tasks. Prevents wasted API calls and keeps scheduled work focused. Inspired by OpenClaw's HEARTBEAT.md pattern.</div>
+  <div class="pattern-name">1. Heartbeat with Per-Task Cadences</div>
+  <div class="pattern-desc">launchd fires on schedule, writes a .trigger file, MCP channel delivers to session. Each sub-task has its own interval. Only due tasks execute. Published as open source: claude-heartbeat.</div>
 </div>
 
 <div class="pattern-box">
-  <div class="pattern-name">Execute-Verify-Report (EVR)</div>
-  <div class="pattern-desc">Every automated action must be executed, verified (file exists, message delivered), then reported. Prevents the most common agent failure: acknowledging a task without completing it. Inspired by OpenClaw's Standing Orders.</div>
+  <div class="pattern-name">2. Execute-Verify-Report (EVR)</div>
+  <div class="pattern-desc">Every automated action must be executed, verified (file exists, message delivered), then reported. Prevents the most common agent failure: acknowledging a task without completing it.</div>
 </div>
 
 <div class="pattern-box">
-  <div class="pattern-name">Notification Suppression</div>
-  <div class="pattern-desc">Scheduled checks that find nothing actionable stay silent. Only ping when something matters. The morning briefing always sends, but mid-cycle checks suppress empty results. Inspired by OpenClaw's HEARTBEAT_OK.</div>
+  <div class="pattern-name">3. Notification Suppression</div>
+  <div class="pattern-desc">Scheduled checks that find nothing actionable stay silent. Only ping when something matters. The morning briefing and evening check-in always send, but mid-cycle checks suppress empty results.</div>
 </div>
 
 <div class="pattern-box">
-  <div class="pattern-name">Temporal Context Loading</div>
-  <div class="pattern-desc">Today's and yesterday's daily notes are loaded into session context for continuity. Provides "what was I doing?" awareness without loading the full archive. Inspired by OpenClaw's daily memory files.</div>
+  <div class="pattern-name">4. Temporal Context Loading</div>
+  <div class="pattern-desc">Today's and yesterday's daily notes are loaded into session context for continuity. Provides "what was I doing?" awareness without loading the full archive.</div>
 </div>
 
 <div class="pattern-box">
-  <div class="pattern-name">Iterative Context Compression</div>
-  <div class="pattern-desc">Long sessions use a structured template (Goal, Progress, Decisions, Files, Next Steps, Critical Context) to preserve important information across context compactions. Prevents progressive information loss. Inspired by Hermes Agent's ContextCompressor.</div>
+  <div class="pattern-name">5. Iterative Context Compression</div>
+  <div class="pattern-desc">Long sessions use a structured template (Goal, Progress, Decisions, Files, Next Steps, Critical Context) to preserve important information across context compactions.</div>
 </div>
 
 <div class="pattern-box">
-  <div class="pattern-name">Frozen Snapshot Memory</div>
+  <div class="pattern-name">6. Session Snapshots</div>
+  <div class="pattern-desc">Every 3 days, structured snapshots are saved to Work/Sessions/ as a long-term memory bridge. Delta-only updates capture what was built/changed, key decisions, open items, and running context (health trends, project states).</div>
+</div>
+
+<div class="pattern-box">
+  <div class="pattern-name">7. Frozen Snapshot Memory</div>
   <div class="pattern-desc">CLAUDE.md loads once at session start and stays stable for prompt cache efficiency. Live state comes from tool calls (reading files, querying Garmin). Memory writes update disk immediately but don't change the active system prompt.</div>
 </div>
 
 <div class="pattern-box">
-  <div class="pattern-name">Intent-Based Routing</div>
-  <div class="pattern-desc">Inbound Telegram messages are classified by intent and routed to the appropriate vault location. Calendar events go directly to Google Calendar. Tasks route by urgency. Journal entries go to monthly files. Shopping items go to lists.</div>
+  <div class="pattern-name">8. Intent-Based Routing</div>
+  <div class="pattern-desc">Inbound Telegram messages are classified by intent and routed to the appropriate vault location. Calendar events go directly to Google Calendar API. Tasks route by urgency. Journal entries go to monthly files. Shopping items go to lists.</div>
+</div>
+
+<div class="pattern-box">
+  <div class="pattern-name">9. Webhook Action Registry</div>
+  <div class="pattern-desc">External webhook triggers are validated via HMAC signature and checked against an action registry whitelist. No arbitrary text injection — only pre-defined actions are accepted. Cloudflare tunnel provides HTTPS ingress.</div>
 </div>
 
 <!-- ============ KNOWN LIMITATIONS ============ -->
@@ -562,25 +642,39 @@
 
 <div class="grid">
   <div class="card">
-    <div class="card-title"><span class="status-dot dot-orange"></span>Session-Only Scheduling</div>
-    <div class="card-desc">Cron jobs are in-memory and expire after 7 days or on session restart. Need to be recreated manually. Persistent scheduling solution still being researched.</div>
+    <div class="card-title"><span class="status-dot dot-orange"></span>Cloudflare Quick Tunnel</div>
+    <div class="card-desc">Quick tunnel URL changes on every restart. Needs migration to a named tunnel for a permanent, stable webhook URL.</div>
   </div>
   <div class="card">
-    <div class="card-title"><span class="status-dot dot-orange"></span>Sleep Before Briefing</div>
-    <div class="card-desc">Laptop must be awake by 7:57 AM for the morning briefing to fire. macOS sleep/wake scheduling could solve this.</div>
-  </div>
-  <div class="card">
-    <div class="card-title"><span class="status-dot dot-yellow"></span>Garmin Sync Dependency</div>
-    <div class="card-desc">Watch must sync to phone before the morning briefing for sleep data to be available. Trent needs to sync before ~7:50 AM.</div>
+    <div class="card-title"><span class="status-dot dot-yellow"></span>Dashboard Webhook Secret</div>
+    <div class="card-desc">Webhook secret is embedded in dashboard JS. Acceptable for a private randomized URL, but not production-grade. Would need server-side proxy for proper security.</div>
   </div>
   <div class="card">
     <div class="card-title"><span class="status-dot dot-yellow"></span>Cowork Still Active</div>
-    <div class="card-desc">Cowork scheduled tasks haven't been disabled yet. Can create duplicate daily notes and conflicting vault edits. Needs to be turned off.</div>
+    <div class="card-desc">Cowork is still running some scheduled tasks. Needs to be fully disabled to prevent duplicate daily notes and conflicting vault edits.</div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="status-dot dot-orange"></span>Exercise HR Dysregulation</div>
+    <div class="card-desc">Running-specific autonomic dysregulation not yet resolved. Resting biometrics (RHR, HRV) are stable, but exercise heart rate still spiking disproportionately during runs.</div>
+  </div>
+</div>
+
+<!-- ============ OPEN SOURCE ============ -->
+<h2><span class="icon">&lt;</span> Open Source</h2>
+
+<div class="grid">
+  <div class="card">
+    <div class="card-title"><span class="status-dot dot-green"></span>claude-heartbeat</div>
+    <div class="card-desc">Persistent scheduling for Claude Code CLI. launchd-based heartbeat system with file-based MCP channel triggers. Published at <code>github.com/trent-cooper/claude-heartbeat</code>.</div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="status-dot dot-green"></span>Garmin Sync Fix</div>
+    <div class="card-desc">Incremental sync fix for garmin-givemydata MCP server. PR #25 merged upstream on <code>nrvim/garmin-givemydata</code>.</div>
   </div>
 </div>
 
 <footer>
-  Brain Vault System Overview — Generated 2026-04-08 — Claude Code (Opus 4.6)
+  Brain Vault System Overview — Updated April 14, 2026
 </footer>
 
 </body>
